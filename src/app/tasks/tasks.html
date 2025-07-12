@@ -1,0 +1,16 @@
+<h2>Mes tâches</h2>
+
+<input [(ngModel)]="newTaskLabel" placeholder="Ajouter une tâche..." />
+<button (click)="createTask()">Ajouter</button>
+
+<ul>
+  <li *ngFor="let task of tasks()">
+    <input type="checkbox" [checked]="task.done" (change)="toggleTask(task)" />
+
+    <input [(ngModel)]="task.label" (blur)="editLabel(task, task.label)" />
+
+    <button (click)="deleteTask(task.id)">Supprimer</button>
+  </li>
+</ul>
+
+<div *ngIf="error()">{{ error() }}</div>
