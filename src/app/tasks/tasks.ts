@@ -1,66 +1,109 @@
-import { Component, inject, signal } from '@angular/core';
-import { Task, TaskService } from '../services/task-service';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { Task, TaskService } from '../services/task-service';
+import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-tasks',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, RouterLink],
   templateUrl: './tasks.html',
   styleUrl: './tasks.css'
 })
-export class Tasks {
+export class Tasks implements OnInit {
   private taskService = inject(TaskService);
 
   tasks = signal<Task[]>([]);
-  newTaskLabel = '';
   error = signal('');
 
-  ngOnInit() {
-    this.loadTasks();
-  }
+  newTaskLabel = signal('');
 
-  loadTasks() {
+  ngOnInit(): void {
     this.taskService.getTasks().subscribe({
-      next: (data) => this.tasks.set(data),
-      error: () => this.error.set('Une erreur est survenue lors de la chargement des taches.')
-    })
+      next: (response) => {
+        console.log('Réponse :', response);
+        this.tasks.set(response.data);
+      },
+      error: (err) => {
+        console.error('Erreur :', err);
+        this.error.set('Une erreur est survenue lors du chargement des tâches.');
+      }
+    });
+  }
+  onInputChange(event: Event) {
+    const input = event.target as HTMLInputElement;
+    this.newTaskLabel.set(input.value);
   }
 
-  createTask() {
-    console.log('yo')
-    if (!this.newTaskLabel.trim()) return;
-
-    this.taskService.createTask(this.newTaskLabel).subscribe({
-      next: (task) => {
-        this.tasks.update(tasks => [...tasks, task]);
-        this.newTaskLabel = '';
-      }
-    })
+  onLabelChange(event: Event, task: Task) {
+    const input = event.target as HTMLInputElement;
+    const newLabel = input.value;
+    this.editLabel(task, newLabel);
   }
 
-  toggleTask(task: Task) {
-    this.taskService.updateTaskDone(task.id, !task.done).subscribe({
-      next: (updated) => {
-        this.tasks.update(t => t.map(tsk => tsk.id === task.id ? updated : tsk))
+  addTask() {
+    const label = this.newTaskLabel().trim();
+    if (!label) return;
+
+    this.taskService.addTask(label).subscribe({
+      next: (response) => {
+        const task = response.data;
+        this.tasks.update(current => [...current, task]);
+        this.newTaskLabel.set('');
+      },
+      error: (err) => {
+        console.error('Erreur ajout tâche :', err);
+        this.error.set("Impossible d'ajouter la tâche.");
       }
-    })
+    });
+  }
+
+
+  toggleDone(task: Task) {
+    this.taskService.toggleTaskDone(task.id).subscribe({
+      next: (response) => {
+        const updated = response.data;
+        this.tasks.update(tasks =>
+          tasks.map(t => t.id === updated.id ? updated : t)
+        );
+      },
+      error: (err) => {
+        console.error('Erreur changement état :', err);
+        this.error.set("Impossible de modifier la tâche.");
+      }
+    });
   }
 
   editLabel(task: Task, newLabel: string) {
-    if (!newLabel.trim()) return;
+    const label = newLabel.trim();
+    if (!label || label === task.label) return;
 
-    this.taskService.updateTaskLabel(task.id, newLabel).subscribe({
-      next: (updated) => {
-        this.tasks.update(t => t.map(tsk => tsk.id === task.id ? updated : tsk))
+    this.taskService.updateTaskLabel(task.id, label).subscribe({
+      next: (response) => {
+        const updated = response.data;
+        this.tasks.update(tasks =>
+          tasks.map(t => t.id === updated.id ? updated : t)
+        );
+      },
+      error: (err) => {
+        console.error('Erreur mise à jour label :', err);
+        this.error.set("Impossible de modifier le label.");
       }
-    })
+    });
   }
 
-  deleteTask(id: number) {
-    this.taskService.deleteTask(id).subscribe({
-      next: () => this.tasks.update(t => t.filter(tsk => tsk.id !== id))
-    })
+  deleteTask(taskId: number) {
+    this.taskService.deleteTask(taskId).subscribe({
+      next: () => {
+        this.tasks.update(tasks => tasks.filter(t => t.id !== taskId));
+      },
+      error: (err) => {
+        console.error("Erreur suppression tâche :", err);
+        this.error.set("Impossible de supprimer la tâche.");
+      }
+    });
   }
+
+
+
 }

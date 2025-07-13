@@ -15,28 +15,49 @@ export class TaskService {
   private http = inject(HttpClient);
   private apiUrl = 'https://todof.woopear.fr/api/v1/task';
 
-  private getHeaders(): HttpHeaders {
+  private getHeaders() {
     const token = localStorage.getItem('token');
-    return new HttpHeaders({ Authorization: `Bearer ${token}` });
+    return new HttpHeaders({
+      Authorization: `Bearer ${token}`
+    })
   }
 
-  getTasks(): Observable<Task[]> {
-    return this.http.get<Task[]>(this.apiUrl, { headers: this.getHeaders()});
+  getTasks(): Observable<{ data: Task[] }> {
+    return this.http.get<{ data: Task[] }>(this.apiUrl, {
+      headers: this.getHeaders()
+    })
   }
 
-  createTask(label: string): Observable<Task> {
-    return this.http.post<Task>(this.apiUrl, { label }, { headers: this.getHeaders() });
+  addTask(label: string): Observable<{ data: Task }> {
+    return this.http.post<{ data: Task }>(
+      this.apiUrl,
+      { label },
+      { headers: this.getHeaders() }
+    );
   }
 
-  updateTaskLabel(id: number, label: string): Observable<Task> {
-    return this.http.put<Task>(`${this.apiUrl}/${id}`, { label }, { headers: this.getHeaders() });
+  toggleTaskDone(id: number): Observable<{ data: Task }> {
+    return this.http.put<{ data: Task }>(
+      `${this.apiUrl}/${id}/done/user`,
+      {},
+      { headers: this.getHeaders() }
+    );
   }
 
-  updateTaskDone(id: number, done: boolean): Observable<Task> {
-    return this.http.put<Task>(`${this.apiUrl}/${id}`, { done }, { headers: this.getHeaders() });
+  updateTaskLabel(id: number, label: string): Observable<{ data: Task }> {
+    return this.http.put<{ data: Task }>(
+      `${this.apiUrl}/${id}/label/user`,
+      { label },
+      { headers: this.getHeaders() }
+    );
   }
 
   deleteTask(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${id}`, { headers: this.getHeaders() });
+    return this.http.delete<void>(
+      `${this.apiUrl}/${id}/user`,
+      { headers: this.getHeaders() }
+    );
   }
+
+
 }

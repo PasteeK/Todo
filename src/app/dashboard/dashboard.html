@@ -12,15 +12,22 @@
   <main class="space-y-6 text-gray-800">
     <p class="text-lg">Vous êtes connecté !</p>
 
-    <app-tasks></app-tasks>
-
-    <button
+    <div class="flex gap-4">
+      <a 
+      class="bg-amber-400 text-white font-semibold py-2 px-4 rounded-xl hover:bg-amber-500 transition duration-200" 
+      routerLink="/tasks"
+      >
+      Voir mes tâches
+      </a>
+      
+      <button
       (click)="loadData()"
       class="bg-amber-400 text-white font-semibold py-2 px-4 rounded-xl hover:bg-amber-500 transition duration-200"
-    >
+      >
       Charger des données
-    </button>
-
+      </button>
+    </div>
+    
     <div *ngIf="data" class="bg-gray-100 p-4 rounded-xl overflow-auto">
       <pre>{{ data | json }}</pre>
     </div>

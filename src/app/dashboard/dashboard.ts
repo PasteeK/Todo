@@ -2,11 +2,11 @@ import { Component, inject } from '@angular/core';
 import { AuthService } from '../auth-service/auth-service';
 import { HttpClient } from '@angular/common/http';
 import { CommonModule, JsonPipe } from '@angular/common';
-import { Tasks } from "../tasks/tasks";
+import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-dashboard',
-  imports: [JsonPipe, CommonModule, Tasks],
+  imports: [JsonPipe, CommonModule, RouterLink],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css'
 })
